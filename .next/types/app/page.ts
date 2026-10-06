@@ -1,4 +1,4 @@
-// File: D:\Claude\gis-dashboard\src\app\page.tsx
+// File: D:\Documents\Kuliah\Skripsi\Dashboard Art of Fuck\gis-dashboard\src\app\page.tsx
 import * as entry from '../../../src/app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

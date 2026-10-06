@@ -51,16 +51,16 @@ export default function ProvinceLayer({ data }: Props) {
             </div>
             <div style="margin-bottom:4px">
               <span style="font-size:10px;color:#475569">Provinsi</span>
-              <div style="font-size:13px;font-weight:500;color:#f1f5f9">${props?.WADMPR ?? '—'}</div>
+              <div style="font-size:13px;font-weight:500;color:#7a8ba3">${props?.WADMPR ?? '—'}</div>
             </div>
             <div style="margin-bottom:4px">
               <span style="font-size:10px;color:#475569">Kabupaten/Kota</span>
-              <div style="font-size:13px;font-weight:500;color:#f1f5f9">${props?.WADMKK ?? '—'}</div>
+              <div style="font-size:13px;font-weight:500;color:#7a8ba3">${props?.WADMKK ?? '—'}</div>
             </div>
             <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)">
               <span style="font-size:10px;color:#475569">Prediksi Penduduk Miskin</span>
               <div style="font-size:20px;font-weight:700;color:#3b82f6;font-family:'JetBrains Mono',monospace">
-                ${props?.pmiskin_grid?.toLocaleString('id-ID') ?? '—'}
+                ${props?.pmiskin_grid != null ? '± ' + Math.round(props.pmiskin_grid).toLocaleString('id-ID') : '—'}
                 <span style="font-size:11px;color:#64748b;font-weight:400"> jiwa</span>
               </div>
             </div>

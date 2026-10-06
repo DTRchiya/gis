@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useMapStore } from '@/store/useMapStore';
 import { fetchBoundary } from '@/lib/geojson';
 import { preloadAllProvinces } from '@/lib/preload';
+import { getPovertyCount, formatJiwa } from '@/lib/povertyData';
 import ProvinceLayer from './ProvinceLayer';
 import ProvinceSelector from './ProvinceSelector';
 import LoadingOverlay from './LoadingOverlay';
@@ -19,10 +20,16 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Boundary layer component
+// Boundary layer — klik untuk load data grid, hover untuk jumlah miskin
 function BoundaryLayer() {
   const map = useMap();
-  const { boundaryData, setSelectedProvince, setCurrentLayer, provinceDataCache } = useMapStore();
+  const {
+    boundaryData,
+    setSelectedProvince,
+    setCurrentLayer,
+    setProvinceCache,
+    provinceDataCache,
+  } = useMapStore();
   const layerRef = useRef<L.GeoJSON | null>(null);
 
   useEffect(() => {
@@ -41,27 +48,87 @@ function BoundaryLayer() {
         opacity: 0.5,
       },
       onEachFeature: (feature, layer) => {
-        const name = feature.properties?.WADMPR;
+        // Nama provinsi dari GeoJSON property — coba beberapa key umum
+        const name: string =
+          feature.properties?.WADMPR ??
+          feature.properties?.provinsi ??
+          feature.properties?.PROVINSI ??
+          '';
+
         layer.on({
-          click: () => {
+          // Klik → load grid data provinsi (sama seperti pilih dropdown)
+          click: async () => {
             const cached = provinceDataCache[name];
             if (cached) {
               setSelectedProvince(name);
               setCurrentLayer(cached);
+              return;
+            }
+            // Fetch on demand jika belum di-cache
+            setSelectedProvince(name);
+            try {
+              const { fetchProvince } = await import('@/lib/geojson');
+              const data = await fetchProvince(name);
+              setProvinceCache(name, data);
+              setCurrentLayer(data);
+            } catch (err) {
+              console.error(`Gagal load provinsi: ${name}`, err);
+              setSelectedProvince(null);
             }
           },
+
+          // Hover → tooltip nama + jumlah penduduk miskin
           mouseover: (e) => {
-            (e.target as L.Path).setStyle({ fillOpacity: 0.6, weight: 2, opacity: 0.8 });
-            if (name) {
-              (e.target as L.Path).bindTooltip(name, {
+            (e.target as L.Path).setStyle({
+              fillOpacity: 0.65,
+              weight: 2,
+              color: '#60a5fa',
+              opacity: 0.9,
+            });
+
+            const poverty = getPovertyCount(name);
+            const tooltipContent = `
+              <div style="
+                font-family: 'JetBrains Mono', monospace;
+                background: #0f1623;
+                border: 1px solid rgba(255,255,255,0.10);
+                border-radius: 10px;
+                padding: 10px 13px;
+                min-width: 180px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+              ">
+                <div style="font-size:12px;font-weight:600;color:#f1f5f9;margin-bottom:6px;">
+                  ${name || '—'}
+                </div>
+                <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">
+                  Penduduk Miskin
+                </div>
+                <div style="font-size:16px;font-weight:700;color:#3b82f6;">
+                  ${poverty !== null ? formatJiwa(poverty) : '—'}
+                  <span style="font-size:10px;color:#64748b;font-weight:400"> jiwa</span>
+                </div>
+              </div>
+            `;
+
+            (e.target as L.Path)
+              .bindTooltip(tooltipContent, {
                 permanent: false,
-                direction: 'center',
-                className: 'province-tooltip',
-              }).openTooltip();
-            }
+                direction: 'top',
+                offset: [0, -4],
+                opacity: 1,
+                className: 'province-hover-tooltip',
+              })
+              .openTooltip();
           },
+
           mouseout: (e) => {
-            (e.target as L.Path).setStyle({ fillOpacity: 0.4, weight: 1, opacity: 0.5 });
+            (e.target as L.Path).setStyle({
+              fillOpacity: 0.4,
+              weight: 1,
+              color: '#3b82f6',
+              opacity: 0.5,
+            });
+            (e.target as L.Path).unbindTooltip();
           },
         });
       },
@@ -84,7 +151,6 @@ export default function MapView() {
     setBoundaryData,
     currentLayer,
     isPreloading,
-    mapReady,
     setMapReady,
     loadingProgress,
   } = useMapStore();
@@ -94,20 +160,16 @@ export default function MapView() {
   useEffect(() => {
     async function init() {
       try {
-        // Step 1: Load boundary
         const boundary = await fetchBoundary();
         setBoundaryData(boundary);
         setInitializing(false);
         setMapReady(true);
-
-        // Step 2: Preload all provinces in background
         preloadAllProvinces();
       } catch (err) {
         console.error('Map init failed:', err);
         setInitializing(false);
       }
     }
-
     init();
   }, []);
 
@@ -125,7 +187,11 @@ export default function MapView() {
           <div
             className="h-full bg-blue-500 transition-all duration-300"
             style={{
-              width: `${loadingProgress.total > 0 ? (loadingProgress.loaded / loadingProgress.total) * 100 : 0}%`,
+              width: `${
+                loadingProgress.total > 0
+                  ? (loadingProgress.loaded / loadingProgress.total) * 100
+                  : 0
+              }%`,
             }}
           />
         </div>
@@ -139,19 +205,25 @@ export default function MapView() {
         zoomControl={false}
         attributionControl={false}
       >
-        {/* Basemap */}
+        {/* Basemap — CARTO kini mewajibkan API key gratis, jika tidak ada tile akan
+            muncul watermark "API KEY REQUIRED". Ambil key gratis di
+            https://carto.com/basemaps/apikey lalu isi NEXT_PUBLIC_CARTO_API_KEY di .env.local */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='© OpenStreetMap, © CARTO'
+          url={`https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png${
+            process.env.NEXT_PUBLIC_CARTO_API_KEY
+              ? `?key=${process.env.NEXT_PUBLIC_CARTO_API_KEY}`
+              : ''
+          }`}
+          attribution="© OpenStreetMap, © CARTO"
         />
 
-        {/* Boundary layer (always visible) */}
+        {/* Boundary layer — selalu tampil, bisa diklik & hover */}
         {boundaryData && <BoundaryLayer />}
 
-        {/* Active province layer */}
+        {/* Active province grid layer */}
         {currentLayer && <ProvinceLayer data={currentLayer} />}
 
-        {/* Attribution control custom */}
+        {/* Attribution */}
         <div className="leaflet-bottom leaflet-left">
           <div
             className="leaflet-control"

@@ -14,9 +14,16 @@ export function classifyData(features: GridFeature[]): ClassificationResult {
 
   if (values.length === 0) return { min: 0, max: 100, mean: 50, breaks: [0, 25, 50, 75, 100] };
 
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  // Gunakan loop biasa — Math.min/max(...array) crash pada array besar (stack overflow)
+  let min = values[0];
+  let max = values[0];
+  let sum = 0;
+  for (const v of values) {
+    if (v < min) min = v;
+    if (v > max) max = v;
+    sum += v;
+  }
+  const mean = sum / values.length;
 
   // Equal interval breaks (5 classes)
   const interval = (max - min) / 5;

@@ -2,15 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MapPin, Home, Map, BookOpen, Info, Activity } from 'lucide-react';
+import { MapPin, Map, BarChart3, Activity } from 'lucide-react';
 import { useMapStore } from '@/store/useMapStore';
 import clsx from 'clsx';
 
 const NAV_ITEMS = [
-  { href: '/', icon: Home, label: 'Home' },
-  { href: '/maps', icon: Map, label: 'Maps' },
-  { href: '/maps#methodology', icon: BookOpen, label: 'Methodology' },
-  { href: '/#about', icon: Info, label: 'About' },
+  { href: '/maps', icon: Map, label: 'Peta' },
+  { href: '/analysis', icon: BarChart3, label: 'Analisis' },
 ];
 
 export default function Sidebar() {
@@ -34,8 +32,8 @@ export default function Sidebar() {
             <MapPin size={15} className="text-white" />
           </div>
           <div>
-            <div className="text-white text-sm font-semibold leading-none mb-0.5">PovMap</div>
-            <div className="text-slate-500 text-[10px] leading-none">Indonesia</div>
+            <div className="text-white text-sm font-semibold leading-none mb-0.5">Dashboard</div>
+            <div className="text-slate-500 text-[10px] leading-none">Peta Estimasi Jumlah Penduduk Miskin Indonesia 2025</div>
           </div>
         </div>
       </div>
@@ -46,7 +44,7 @@ export default function Sidebar() {
           Navigation
         </div>
         {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
-          const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href.split('#')[0]);
+          const isActive = pathname === href || pathname.startsWith(href + '/');
           return (
             <Link
               key={href}
@@ -66,57 +64,55 @@ export default function Sidebar() {
       </nav>
 
       {/* Status panel */}
-      {pathname.includes('/maps') && (
-        <div className="px-4 py-4 border-t border-white/[0.06] space-y-3">
-          {/* Preload progress */}
-          {isPreloading && (
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] text-slate-500 font-mono uppercase tracking-wider">
-                  Loading Data
-                </span>
-                <span className="text-[10px] text-blue-400 font-mono">{progressPct}%</span>
-              </div>
-              <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-blue-500 transition-all duration-300 rounded-full"
-                  style={{ width: `${progressPct}%` }}
-                />
-              </div>
-              {loadingProgress.currentProvince && (
-                <div className="text-[10px] text-slate-600 mt-1 truncate font-mono">
-                  {loadingProgress.currentProvince}
-                </div>
-              )}
-            </div>
-          )}
-
-          {!isPreloading && loadingProgress.loaded > 0 && (
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-              <span className="text-[10px] text-slate-500 font-mono">
-                {loadingProgress.loaded} provinsi siap
+      <div className="px-4 py-4 border-t border-white/[0.06] space-y-3">
+        {/* Preload progress */}
+        {isPreloading && (
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] text-slate-500 font-mono uppercase tracking-wider">
+                Loading Data
               </span>
+              <span className="text-[10px] text-blue-400 font-mono">{progressPct}%</span>
             </div>
-          )}
-
-          {/* Selected province */}
-          {selectedProvince && (
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
-              <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1 font-mono">
-                Active Layer
+            <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-500 transition-all duration-300 rounded-full"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+            {loadingProgress.currentProvince && (
+              <div className="text-[10px] text-slate-600 mt-1 truncate font-mono">
+                {loadingProgress.currentProvince}
               </div>
-              <div className="text-xs text-white font-medium">{selectedProvince}</div>
-            </div>
-          )}
-
-          {/* Activity indicator */}
-          <div className="flex items-center gap-2 text-[10px] text-slate-600">
-            <Activity size={10} className="text-slate-600" />
-            <span className="font-mono">Dashboard aktif</span>
+            )}
           </div>
+        )}
+
+        {!isPreloading && loadingProgress.loaded > 0 && (
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+            <span className="text-[10px] text-slate-500 font-mono">
+              {loadingProgress.loaded} provinsi siap
+            </span>
+          </div>
+        )}
+
+        {/* Selected province */}
+        {selectedProvince && (
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+            <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1 font-mono">
+              Active Layer
+            </div>
+            <div className="text-xs text-white font-medium">{selectedProvince}</div>
+          </div>
+        )}
+
+        {/* Activity indicator */}
+        <div className="flex items-center gap-2 text-[10px] text-slate-600">
+          <Activity size={10} className="text-slate-600" />
+          <span className="font-mono">Dashboard aktif</span>
         </div>
-      )}
+      </div>
     </aside>
   );
 }

@@ -2,9 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'PovMap Indonesia — Poverty Prediction Dashboard',
-  description:
-    'Interactive Web GIS Dashboard for poverty prediction mapping across Indonesia at 1x1 km grid resolution.',
+  title: 'Dashboard',
+  description: 'Peta Estimasi Jumlah Penduduk Miskin Indonesia 2025',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

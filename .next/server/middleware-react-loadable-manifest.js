@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST="{\"components\\\\map\\\\MapView.tsx -> @/lib/geojson\":{\"id\":\"components\\\\map\\\\MapView.tsx -> @/lib/geojson\",\"files\":[]}}"

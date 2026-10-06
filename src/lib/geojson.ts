@@ -12,14 +12,14 @@ export async function fetchProvince(name: string): Promise<ProvinceGeoJSON> {
   return res.json();
 }
 
-// List of all provinces (must match filenames in /public/data/provinces/)
+// List of all provinces — nama harus PERSIS sama dengan nama file di /public/data/provinces/
+// (tanpa ekstensi .geojson)
 export const PROVINCE_LIST = [
   'Aceh',
   'Bali',
-  'Bangka Belitung',
   'Banten',
   'Bengkulu',
-  'DI Yogyakarta',
+  'Daerah Istimewa Yogyakarta',
   'DKI Jakarta',
   'Gorontalo',
   'Jambi',
@@ -31,6 +31,7 @@ export const PROVINCE_LIST = [
   'Kalimantan Tengah',
   'Kalimantan Timur',
   'Kalimantan Utara',
+  'Kepulauan Bangka Belitung',
   'Kepulauan Riau',
   'Lampung',
   'Maluku',
@@ -39,6 +40,10 @@ export const PROVINCE_LIST = [
   'Nusa Tenggara Timur',
   'Papua',
   'Papua Barat',
+  'Papua Barat Daya',
+  'Papua Pegunungan',
+  'Papua Selatan',
+  'Papua Tengah',
   'Riau',
   'Sulawesi Barat',
   'Sulawesi Selatan',

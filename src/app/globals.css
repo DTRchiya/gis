@@ -72,3 +72,17 @@ body {
   background: #1e2d40;
   border-radius: 2px;
 }
+
+/* Custom Leaflet tooltip — province hover */
+.province-hover-tooltip .leaflet-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.province-hover-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
